@@ -1,0 +1,33 @@
+# =========================
+# R / RStudio temporary files
+# =========================
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+.Renviron
+.env
+
+# =========================
+# Folders to exclude
+# =========================
+Data/
+Data_cleaning/
+Discrepancy data/
+figures/
+renv/
+
+# =========================
+# Files to exclude
+# =========================
+renv.lock
+
+# Optional: ignore common data files
+*.csv
+*.xlsx
+*.xls
+*.sav
+*.dt
+*.rds
+*.RDS
+.Rprofile

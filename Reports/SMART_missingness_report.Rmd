@@ -1,0 +1,448 @@
+---
+title: "SMART Uncomplicated Malaria Study"
+subtitle: "Data Quality and Missingness Assessment"
+author: "Patricia Arthur Owusu"
+date: "`r format(Sys.Date(), '%d %B %Y')`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  warning = FALSE,
+  message = FALSE
+)
+
+library(tidyverse)
+library(knitr)
+library(writexl)
+library(here)
+
+# Set the working directory for subsequent chunks
+knitr::opts_knit$set(
+  root.dir = here::here()
+)
+
+# Run the complete analysis pipeline
+source(
+  here::here("04_analysis_data.R"),
+  chdir = TRUE
+)
+```
+
+
+# Introduction
+
+This report presents the data quality and missingness assessment conducted for the SMART uncomplicated malaria dataset. 
+
+The purpose of the assessment was to identify incomplete records, distinguish true missing measurements from measurements that were not expected because a participant was no longer under follow-up, and identify selected inconsistencies requiring clarification or correction.
+
+
+
+# Assessment approach
+
+Missingness was initially assessed across the relevant study variables and scheduled study visits. Participant follow-up was subsequently considered to avoid classifying measurements as missing when they were no longer expected.
+
+For scheduled follow-up measurements, a value was considered missing only when:
+
+1. the variable was expected to be collected at that visit;
+2. the visit occurred within the participant's observed follow-up period; and
+3. the visit was not explicitly recorded as not performed.
+
+Where a participant's scheduled follow-up ended before Day 42, measurements at subsequent scheduled visits were excluded from the missingness assessment. Similarly, when a visit was explicitly recorded as not performed, measurements associated with that visit were not classified as missing.
+
+This approach distinguishes **missing measurements within expected follow-up** from the absence of measurements resulting from the participant no longer having an observed study visit.
+
+# Overall missingness
+
+Table 1 presents the frequency and percentage of missing observations among records in which each variable was expected.
+
+```{r overall-missingness}
+kable(
+  final_missingness_summary,
+  caption = "Table 1. Overall missingness of key study variables",
+  align = c("l", "r", "r", "r")
+)
+```
+
+The data were largely complete for most of the variables assessed. Temperature had 67 missing observations out of 6,390 expected records (1.0%), while complaint status had 59 missing observations out of 6,390 expected records (0.9%). Missingness in temperature route was minimal, with only two incomplete records.
+
+Haemoglobin showed higher missingness, with 197 of 3,615 expected observations missing (5.4%). Concomitant medication indication was missing in 37 of 314 medication records (11.8%).
+
+Treatment failure microscopy had two missing results among 124 treatment-failure records (1.6%). Unscheduled-visit microscopy had seven missing records among 25 unscheduled visits (28.0%). Although this represents the highest percentage among the variables assessed, it is based on a relatively small number of unscheduled visits.
+
+Treatment administration data showed minimal missingness. Information on whether the study drug was given was missing for 9 of 2,500 expected dosing records (0.4%). Among records where the study drug was recordede as given, drug dose was missing for 3 of 2,488 records (0.1%), while administration date was missing for 2 of 2,488 records (0.1%). Complaint details were missing for 2 of the 261 records in which a complaint was reported (0.8%).
+
+# Missingness by scheduled study visit
+
+Missingness in key analysis variables such as temperature, haemoglobin, study drug administration, and drug dose was also examined by study visit to assess whether missing data were concentrated at particular time points.
+
+```{r visit-missingness}
+kable(
+  missingness_by_visit,
+  caption = "Table 2. Missingness of variables by scheduled study visit",
+  col.names = c(
+    "Variable",
+    "Study visit",
+    "Expected N",
+    "Missing n",
+    "Missing (%)"
+  ),
+  align = c("l", "l", "r", "r", "r")
+)
+```
+
+## Temperature
+
+Temperature data were largely complete throughout scheduled follow-up. Missingness remained approximately 4% or lower at most visits. A higher proportion of missing temperature measurements was observed towards the end of follow-up, with 10 of 477 expected measurements missing at Day 35 (2.1%) and 18 of 444 missing at Day 42 (4.1%).
+
+## Haemoglobin
+
+Baseline haemoglobin was complete for all 557 participants. Missingness remained low at several scheduled follow-up visits but was concentrated at specific visits.
+
+At Day 21, 71 of 542 expected haemoglobin measurements were missing (13.1%), while at Day 35, 87 of 477 were missing (18.2%). Missingness at Day 42 was 18 of 444 expected measurements (4.1%).
+
+This suggests that missing haemoglobin measurements were concentrated  at certain particular study visits.
+
+# RDT data at unscheduled visits
+
+RDT completeness was assessed separately because an RDT that was explicitly not performed was not treated as having a missing result.
+
+```{r rdt-breakdown}
+rdt_breakdown <- SMART_analysis |>
+  filter(study_visit == "Unscheduled visit") |>
+  summarise(
+    `RDT not performed` =
+      sum(rdt_done == 0, na.rm = TRUE),
+    
+    `RDT status and result unavailable` =
+      sum(is.na(rdt_done) & is.na(rdt_result))
+  ) |>
+  pivot_longer(
+    everything(),
+    names_to = "classification",
+    values_to = "n"
+  )
+
+kable(
+  rdt_breakdown,
+  caption = "Table 3. Incomplete RDT information at unscheduled visits",
+  col.names = c("RDT classification", "Frequency"),
+  align = c("l", "r")
+)
+```
+
+Among the 25 unscheduled-visit records, RDT was explicitly recorded as not performed in 7 records; therefore, the absence of an RDT result in these records was not considered missing. In another 7 records (28.0%), both the RDT-performed status and RDT result were unavailable. These records were classified as incomplete RDT information.
+
+# Data consistency checks
+
+In addition to conventional missingness, selected logical inconsistencies between related variables were examined.
+
+## Age
+A participants was recruited at 5 months which is inconsistent to the protocol's specified age for recruitment.
+```{r num-age}
+num_age <- smart_analysis_final |> 
+  filter( age == 5) |> 
+  select(
+    participant_id,
+    screening_id,
+    age,
+    treatment_arm
+  ) |> 
+  distinct(participant_id, .keep_all = TRUE)
+
+kable(
+  num_age,
+  caption = "Table 4. Age consistency query",
+  col.names = c(
+    "Participant ID",
+    "Screening ID",
+    "Age",
+    "Treatment Arm"
+  ),
+  align = c("l", "l", "c", "r")
+)
+
+```
+
+
+## Haemoglobin
+
+One inconsistency was identified in the haemoglobin measurements: a participant recorded a value exceeding the protocol's maximum limit of 18 g/dL during a study visit.
+```{r max-haemoglobin}
+max_haemoglobin <- smart_analysis_final |>
+  filter(haemoglobin== "20.2") |>
+  select(
+    participant_id,
+    screening_id,
+    study_visit,
+    treatment_arm,
+    haemoglobin
+  )
+
+kable(
+  max_haemoglobin,
+  caption = "Table 5. Haemoglobin consistency query",
+  col.names = c(
+    "Participant ID",
+    "Screening ID",
+    "Study visit",
+    "Treatment Arm",
+    "Haemoglobin"
+  ),
+  align = c("l", "l", "l", "c", "r")
+)
+
+```
+
+
+## Direct bilirubin
+
+One inconsistency was identified in the direct bilirubin fields.
+
+```{r direct-bilirubin}
+kable(
+  direct_bilirubin_check,
+  caption = "Table 6. Direct bilirubin data consistency query",
+  col.names = c(
+    "Participant ID",
+    "Screening ID",
+    "Study visit",
+    "Test done status",
+    "Direct bilirubin result"
+  ),
+  align = c("l", "l", "l", "c", "r")
+)
+```
+
+For participant `S24-10017-AG` at Day 14, a direct bilirubin result of 0.7 was recorded while the corresponding indicator for whether the test was performed was missing. This was therefore classified as a **data consistency issue rather than a missing data**.
+
+A complementary check was performed for records in which direct bilirubin was marked as performed but the result was missing. No such records were identified.
+
+# Microscopy data issues
+
+Several data-quality and linkage issues were identified during cleaning of the
+microscopy dataset. These were reviewed before microscopy results were merged
+with the main SMART analysis dataset.
+
+<!--
+## Final Parasitaemia Discrepancies
+
+The variable containing final parasitaemia included negative special codes that
+do not represent valid parasite-density measurements.
+
+```{r microscopy-discrepancy-codes, echo=FALSE}
+microscopy_discrepancy_codes <- SMART_microscopy_clean |>
+  filter(
+    final_parasitemia_over_all_readings_in_parasites_m_l < 0
+  ) |>
+  count(
+    final_parasitemia_over_all_readings_in_parasites_m_l,
+    name = "Frequency"
+  ) |>
+  rename(
+    `Final parasitaemia code` =
+      final_parasitemia_over_all_readings_in_parasites_m_l
+  )
+
+knitr::kable(
+  microscopy_discrepancy_codes,
+  caption = "Special codes identified in final parasitaemia"
+)
+```
+
+A total of 698 microscopy records contained data discrepancies:
+695 records had a value of `-1` and `3` records had a value of `-2`. These values
+were retained in the original final-parasitaemia variable but the corresponding
+parasite_density value was therefore set to NA. 
+-->
+
+## Non-standard microscopy visit
+
+A small number of microscopy sample IDs contained visit codes that did not
+initially correspond directly to the standard scheduled study visits.
+
+```{r microscopy-discrepancy, echo=FALSE}
+microscopy_unusual_visits <- SMART_microscopy_clean |>
+  filter(
+    microscopy_visit %in% c("AG", "H18", "A0", "AFD42")
+  ) |>
+  count(microscopy_visit, name = "Frequency") |>
+  arrange(desc(Frequency))
+
+knitr::kable(
+  microscopy_unusual_visits,
+  caption = "Non-standard microscopy visit codes"
+)
+```
+
+# Unscheduled visit microscopy records
+Four microscopy samples were labelled as `U01`. Three could be linked to a
+corresponding U01 clinical visit in the main SMART dataset.
+One microscopy record, `S24-10006-AF-U01`, could not be linked because
+participant `S24-10006-AF` had no corresponding unscheduled-visit clinical record.
+<!--The microscopy result was therefore retained separately and was not forced onto another clinical visit.-->
+
+## Microscopy records not matched to the SMART analysis dataset
+
+```{r}
+microscopy_unmatched_reason <- unmatched_microscopy |>
+  mutate(
+    `Reason for non-match` = if_else(
+      participant_id %in% SMART_analysis$participant_id,
+      "Participant present but corresponding visit not matched",
+      "Participant not in SMART analysis population"
+    )
+  ) |>
+  count(`Reason for non-match`, name = "Frequency")
+
+knitr::kable(
+  microscopy_unmatched_reason,
+  caption = "Reasons microscopy records were not linked to SMART analysis data"
+)
+```
+
+260 microscopy records from 32 participants remained unmatched to participants records in the main dataset. Of these, 252 records had participant IDs that were not present in the SMART analysis population `(AF, AG)`, while 8 records belonged to participants who were present in the SMART dataset but did not have a corresponding clinical visit for the microscopy visit recorded. These records were retained separately in the `unmatched_microscopy` dataset for traceability.
+
+## Duplicate and differently labeled visit 
+Equivalent microscopy visits were also recorded using different formats,
+including `H08`, `D3/D03` and `D7/D07`. Participant overlap was identified
+between these alternative formats before harmonisation.
+
+- `28` participants appeared under both `D3` and `D03`.
+- `35` participants appeared under both `D7` and `D07`.
+
+The equivalent labels were standardised to H8, H72 and D7, respectively.
+Where harmonisation produced more than one record for the same participant and
+visit, records with a valid final parasite-density result were prioritised over
+records containing discrepancy or unavailable values. After this procedure, no
+duplicate participant–visit combinations remained in the cleaned microscopy
+analysis dataset.
+
+# PCR data issues
+
+PCR records were reviewed for participant eligibility, marker
+completeness, classification consistency and agreement with the recorded
+treatment-failure visit before linking with the main SMART analysis dataset.
+
+##  PCR records outside the SMART analysis population
+
+The PCR dataset initially contained 136 records from 136 participants. `18` records were identified as belonging outside the SMART uncomplicated malaria
+analysis population. These included `participant_id` ending in `-TP` and
+identification beginning with `S24-20`.
+These records were excluded from the analysis population, leaving **118 PCR
+records from 118 participants** for further cleaning.
+
+<!--
+## Missing PCR Marker Information
+
+Missing marker information was recorded explicitly as `"No data"` in the PCR
+dataset.
+
+```{r pcr-marker-missingness, echo=FALSE}
+pcr_marker_missingness <- tibble::tibble(
+  `PCR marker` = c("msp1", "msp2", "ta60"),
+  `No data` = c(2, 13, 2)
+)
+
+knitr::kable(
+  pcr_marker_missingness,
+  caption = "PCR marker records with no genotype data"
+)
+```
+
+
+```{r}
+pcr_classification_summary <- tibble::tibble(
+  `Classification method` = c(
+    "WHO",
+    "WHO",
+    "WHO",
+    "2-of-3",
+    "2-of-3"
+  ),
+  `PCR conclusion` = c(
+    "New infection",
+    "Recrudescence OMS",
+    "Indeterminate",
+    "New infection",
+    "Recrudescence 2/3"
+  ),
+  Frequency = c(
+    103,
+    11,
+    4,
+    72,
+    46
+  )
+)
+
+knitr::kable(
+  pcr_classification_summary,
+  caption = "Distribution of PCR conclusions"
+)
+```
+-->
+
+## PCR and treatment failure visit discrepancies
+Two PCR records had a failure visit that did not match with the treatment-failure
+visit recorded in the clinical data.
+
+```{r}
+pcr_visit_discrepancies <- tibble::tibble(
+  `Participant ID` = c(
+    "S24-10033-AG",
+    "S24-10287-AG"
+  ),
+  `PCR failure visit` = c(
+    "D28",
+    "D21"
+  ),
+  `Treatment-failure visit` = c(
+    "Unscheduled Visit 1",
+    "D28"
+  )
+)
+
+knitr::kable(
+  pcr_visit_discrepancies,
+  caption = "PCR records with treatment-failure visit discrepancies"
+)
+```
+
+
+# Pharmacokinetic dataset
+Pharmacokinetic data were reviewed for duplicate participant-day measurements, missing concentrations, participant linkage and visit consistency. There were no unresolved PK data-quality or linking issues.
+
+<!--
+# Data Queries
+
+Participant-level records corresponding to the identified missing or inconsistent information were compiled for clarification and correction. The query file includes the relevant participant and screening identifications, study visit, and corresponding missing fields.
+
+The queried areas included:
+
+- temperature;
+- temperature route;
+- haemoglobin;
+- treatment-failure microscopy;
+- unscheduled-visit microscopy;
+- RDT information;
+- drug-administration information;
+- direct bilirubin consistency;
+- complaint status;
+- complaint details; and
+- concomitant medication indication.
+-->
+
+# Summary
+
+The data-quality assessment showed that most key clinical and treatment variables had relatively low levels of missingness after accounting for participant follow-up and visits that were not performed. The main areas requiring attention were haemoglobin at selected follow-up visits, concomitant medication indication, incomplete RDT information at unscheduled visits, and a small number of consistency issues.
+Additional review of the microscopy and PCR datasets identified discrepancies in unmatched microscopy records and two PCR–treatment-failure visit inconsistencies. No unresolved data-quality or linkage issues remained in the PK dataset.
+
+
+

@@ -1,0 +1,93 @@
+---
+title: "Exploratory Data Analysis of the SMART Uncomplicated Malaria Study"
+author: "Patricia"
+date: last-modified
+format:
+  html:
+    toc: true
+    number-sections: true
+    embed-resources: true
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+# Baseline characteristics
+
+A total of 557 participants were included in the current analysis population. Of these, `278` received Artemether-Lumefantrine (AL) and `279` received Artesunate-Pyronaridine (AP). The study population comprised `268` participants from Assin Fosu and `289` from Agogo.
+
+`Figure 1` presents baseline characteristics by study site and treatment arm.
+
+![Baseline characteristics by study site and treatment arm](../figures/baseline_charac_site_arm.png){#fig-baseline-site-arm width=100%}
+
+Participants receiving AP at Agogo had the highest median age `(88 months)`, while the median age among AL participants was `77 months` at both sites. Most participants were aged five years or older across all groups `(62.9%–75.3%)`, and sex distribution was relatively balanced. Participants receiving AP were generally heavier at baseline, particularly at Agogo `(20.6 kg vs 17.8 kg for AL)`. Baseline temperature and haemoglobin concentrations were broadly similar across the treatment groups.
+
+## Baseline characteristics by treatment arm
+
+For additional clarity, baseline characteristics were also summarised after 
+pooling participants across study sites and comparing the two treatment arms.
+
+![Baseline characteristics by treatment arm](../figures/baseline_charac_arm.png){#fig-baseline-arm width=95%}
+
+The AP arm had a slightly higher median age than the AL arm `(85 vs 77 months)` and a higher median weight `(19.8 vs 17.9 kg)`. The proportion aged five years or older was also slightly higher in the AP arm `(71% vs 66%)`. Sex distribution, baseline temperature and haemoglobin concentrations were broadly similar between the two treatment groups.
+
+## Baseline characteristics by study site
+
+Baseline characteristics were also examined independently by study site.
+
+![Baseline characteristics by study site](../figures/baseline_charac_site.png){#fig-baseline-site width=95%}
+
+Participants at Agogo were slightly older than those at Assin Fosu, with median ages of `82` and `79 months`, respectively. Median weight was also slightly higher at Agogo  `(19.0 vs 18.3 kg)`. The proportion aged five years or older was similar at both sites (`69%` at Agogo and `68%` at Assin Fosu), while sex distribution and haemoglobin concentrations were broadly comparable.
+
+# Descriptive analyses
+
+## Temperature trajectory
+
+Mean temperature was examined across scheduled follow-up visits separately 
+for the AL and AP treatment arms.
+
+![Temperature trajectories by treatment arm](../figures/temperature_curve.png){#fig-temperature width=90%}
+
+Mean temperature declined rapidly in both treatment arms, from approximately `37.3°C` at H0 to about `37.0°C` at H8 and `36.5°C` by H24. The AP arm had a slightly higher mean temperature at H0, while AL was marginally higher at H8. From H24 to H72, the two trajectories were almost identical.
+
+At the later follow-up visits, AL showed slightly higher mean temperatures from Day 21 to Day 35, whereas AP was slightly higher at Day 42. These differences were small, and both treatment arms maintained mean temperatures within a similar range throughout follow-up.after.
+
+## Haemoglobin trajectory
+
+Haemoglobin concentrations were assessed at H0, H72, and Days 7, 14, 28 and 
+42.
+
+![Haemoglobin trajectories by treatment arm](../figures/haemoglobin_curve.png){#fig-haemoglobin width=90%}
+
+Mean haemoglobin declined slightly in both treatment arms from H0 to H72, from approximately `11.2 g/dL` to `10.8 g/dL` in AL and from `11.3 g/dL` to `10.9 g/dL` in AP. Thereafter, haemoglobin increased steadily in both groups, reaching about `12.0 g/dL` in AL and `12.1 g/dL` in AP by Day 28.
+
+The two trajectories were very similar throughout follow-up. AP had slightly higher mean haemoglobin at H0, H72, Day 28 and Day 42, while AL was marginally higher at Day 7 and the values were nearly identical at Day 14. By Day 42, haemoglobin remained above baseline levels in both treatment arms.
+
+## Biochemistry trajectories
+
+Changes in albumin, alkaline phosphatase (ALP), alanine 
+aminotransferase (ALT), aspartate aminotransferase (AST), direct bilirubin, 
+total bilirubin, gamma-glutamyl transferase (GGT) and total protein were 
+examined using median values at scheduled biochemical assessment visits.
+
+![Biochemistry trajectories by treatment arm](../figures/biochemistry_curve.png){#fig-biochemistry width=100%}
+
+Most biochemical markers followed broadly similar patterns in the AL and AP arms, although some differences were observed at specific visits. Albumin increased after H72 in both groups, with AP generally showing slightly higher median values thereafter. ALP increased over follow-up in both arms and was highest at Day 42, particularly in AP.
+
+ALT and AST fluctuated across visits, with no consistent separation between the treatment groups. Both total and direct bilirubin declined markedly after baseline; values were generally slightly higher in AP than AL throughout follow-up. GGT was also consistently higher in AP, while total protein followed a very similar pattern in both arms and declined to approximately `65 g/L` by Day 42.
+
+The biochemical trajectories were largely comparable between AL and AP, with only modest differences in individual markers.
+
+# Analyses pending data clarification
+
+Baseline parasite-density summaries, parasite-clearance trajectories and the 
+classification of treatment outcomes `(ETF, LCF, LPF and ACPR)` have not yet 
+been finalised. During data preparation, substantial missingness and 
+inconsistencies were identified in the microscopy data, including 
+missing baseline parasite-density measurements and unexpected zero values at 
+H0.
+
+These issues have been flagged for clarification with the study team. 
+Parasite-clearance and treatment-efficacy analyses will therefore be completed 
+after the microscopy dataset has been reviewed and corrected where necessary.
