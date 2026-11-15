@@ -1,4 +1,4 @@
-#===============================================================================
+
 #==========SMART ANALYSIS-READY DATASET==========================================
 
 source("03_data_cleaning.R")
@@ -6,10 +6,8 @@ library(readxl)
 #===================1. MICROSCOPY DATA==========================================
 
 
-#-------------------------------------------------------------------------------
-#       Prepare microscopy data
-#-------------------------------------------------------------------------------
-a <- SMART_microscopy |>
+#-----------------------------Prepare microscopy data---------------------------
+SMART_microscopy |>
   filter(
     microscopy_visit %in% c(
       "H8", "H08", "D3","D03","D7","D07"
@@ -89,9 +87,8 @@ SMART_microscopy |>
   arrange(participant_id, microscopy_visit)
 
 #=================HARMONISE MICROSCOPY VISITS:==================================
-#         
 # choose visit with valid final microscopy in the case of H8/H08,D3/D03,D7/D07,
-#===============================================================================
+
 # Map the days to align with the study days
 
 SMART_microscopy_clean <- SMART_microscopy |>
@@ -139,7 +136,7 @@ SMART_microscopy_clean |>
 
 # Check conflicting records for final parasite on visit days
 SMART_microscopy_clean |>
-  filter(microscopy_visit %in% c("H8", "H72", "D7")) |>
+  filter(microscopy_visit %in% c("H0", "H8", "H72", "D7")) |>
   group_by(participant_id, microscopy_visit) |>
   filter(n() > 1) |>
   summarise(
@@ -161,7 +158,7 @@ SMART_microscopy_clean |>
 
 valid_duplicate_check <- SMART_microscopy_clean |>
   filter(
-    microscopy_visit %in% c("H72", "D7"),
+    microscopy_visit %in% c("H0", "H72", "D7"),
     final_parasite_status == "Valid"
   ) |>
   group_by(participant_id, microscopy_visit) |>
@@ -193,25 +190,31 @@ valid_duplicate_check |>
 
 
 #----------------Resolve duplicate visit format---------------------------------
-
+# Resolve duplicate microscopy records
+# Prioritise valid results and select the highest value
 
 SMART_microscopy_clean <- SMART_microscopy_clean |>
   arrange(
     participant_id,
     microscopy_visit,
-    final_parasite_priority
+    final_parasite_priority,
+    desc(final_parasitemia_over_all_readings_in_parasites_m_l)
   ) |>
   group_by(participant_id, microscopy_visit) |>
   slice_head(n = 1) |>
   ungroup()
 
+
 SMART_microscopy_clean |>
   count(participant_id, microscopy_visit) |>
   filter(n > 1)
 
-#-------------------------------------------------------------------------------
+SMART_microscopy_clean |>
+  filter(microscopy_visit == "H0") |>
+  count(participant_id) |>
+  filter(n > 1)
+
 #-------------Create analysis variable for final parasite-----------------------
-#-------------------------------------------------------------------------------
 
 SMART_microscopy_clean <- SMART_microscopy_clean |>
   mutate(
@@ -241,8 +244,6 @@ SMART_microscopy_clean |>
 
 
 #=================== UNUSUAL SAMPLE IDS=========================================
-#            
-#===============================================================================
 
 unusual_id <- SMART_microscopy_clean|>
   filter((microscopy_visit == "AG")|
@@ -269,13 +270,10 @@ unusual_id <- SMART_microscopy_clean|>
   ) |>
   print(N = Inf)
   #View()
-#write_csv(unusual_id,"unsual_microscopy_sample_id.csv")
-#===============================================================================
+write_csv(unusual_id,"Discrepancy data/unsual_microscopy_sample_id.csv")
 
+#----------------------Inspect detection fields--------------------------------
 
-#-------------------------------------------------------------------------------
-#           Inspect detection fields
-#-------------------------------------------------------------------------------
 SMART_microscopy_clean |>
   summarise(
     across(
@@ -504,10 +502,10 @@ SMART_microscopy_analysis |>
   print(n = Inf)
 
 
-#===============================================================================
+
 # Check whether unmatched microscopy records belong to participants
 # outside the SMART analysis population
-#===============================================================================
+
 SMART_microscopy_analysis |>
   anti_join(
     SMART_analysis |>
@@ -589,9 +587,7 @@ SMART_analysis |>
   arrange(participant_id) |>
   print(n = Inf)
 
-#===============================================================================
-#        CHECK ACTUAL VISIT OF TREATMENT FAILURE
-#===============================================================================
+#===================CHECK ACTUAL VISIT OF TREATMENT FAILURE=====================  
 
 treatment_failure_check <- SMARTUncomplicated |>
   filter(redcap_event_name == "treatment_failure_arm_1") |>
@@ -633,7 +629,14 @@ treatment_failure_check <- SMARTUncomplicated |>
     ),
     
     tf_visit_date = as.Date(a01_tf_um_sm),
-    tf_microscopy_result = b03_malaria_microscopy_pos_sm
+    
+    tf_microscopy_result = as.numeric(b03_malaria_microscopy_pos_sm),
+    
+    tf_danger_sign = as.numeric(b03_1_danger_sign_sm),
+    
+    tf_severe_manifestation = as.numeric(b03_malaria_microscopy_pos_3_sm),
+    
+    tf_malaria_diagnosis = as.numeric(c01_tf_um_sm)
   ) |>
   left_join(
     SMART_analysis |>
@@ -1333,7 +1336,7 @@ pcr_tf_check |>
   ) |>
   arrange(participant_id) |>
   print(n = Inf)
-#----------------------------------------------------------
+
   
 names(SMART_pcr)
 glimpse(SMART_pcr)
@@ -1912,7 +1915,10 @@ SMART_tf <- treatment_failure_check |>
     tf_visit,
     tf_unscheduled_visit,
     tf_visit_date,
-    tf_microscopy_result
+    tf_microscopy_result,
+    tf_danger_sign,
+    tf_severe_manifestation,
+    tf_malaria_diagnosis,
   )
 
 SMART_tf |>
@@ -1991,64 +1997,87 @@ SMART_analysis |>
 #=====REPLACING TREATMENT FAILURE AND UNSCHEDULED VISITS WITH EXACT DAYS========
 
 #-------Reference for deriving the study day of unscheduled visits--------------
+# 
+# scheduled_reference <- SMART_analysis |>
+#   filter(
+#     study_visit %in% c(
+#       "H0", "H8", "H24", "H36", "H48", "H60", "H72",
+#       "D7", "D14", "D21", "D28", "D35", "D42"
+#     ),
+#     !is.na(followup_date)
+#   ) |>
+#   mutate(
+#     protocol_day = case_when(
+#       study_visit %in% c("H0", "H8")   ~ 0,
+#       study_visit %in% c("H24", "H36") ~ 1,
+#       study_visit %in% c("H48", "H60") ~ 2,
+#       study_visit == "H72"              ~ 3,
+#       study_visit == "D7"               ~ 7,
+#       study_visit == "D14"              ~ 14,
+#       study_visit == "D21"              ~ 21,
+#       study_visit == "D28"              ~ 28,
+#       study_visit == "D35"              ~ 35,
+#       study_visit == "D42"              ~ 42
+#     )
+#   ) |>
+#   select(
+#     participant_id,
+#     scheduled_visit = study_visit,
+#     scheduled_date = followup_date,
+#     protocol_day
+#   )
+# 
+# #===================Derive day for an unscheduled visit-========================
+# 
+# derive_unscheduled_day <- function(id, event_date) {
+# 
+#   if (is.na(event_date)) {
+#     return(NA_integer_)
+#   }
+# 
+#   previous_visit <- scheduled_reference |>
+#     filter(
+#       participant_id == id,
+#       scheduled_date <= event_date
+#     ) |>
+#     arrange(
+#       desc(scheduled_date),
+#       desc(protocol_day)
+#     ) |>
+#     slice(1)
+# 
+#   if (nrow(previous_visit) == 0) {
+#     return(NA_integer_)
+#   }
+# 
+#   previous_visit$protocol_day +
+#     as.integer(event_date - previous_visit$scheduled_date)
+# }
 
-scheduled_reference <- SMART_analysis |>
-  filter(
-    study_visit %in% c(
-      "H0", "H8", "H24", "H36", "H48", "H60", "H72",
-      "D7", "D14", "D21", "D28", "D35", "D42"
-    ),
-    !is.na(followup_date)
-  ) |>
-  mutate(
-    protocol_day = case_when(
-      study_visit %in% c("H0", "H8")   ~ 0,
-      study_visit %in% c("H24", "H36") ~ 1,
-      study_visit %in% c("H48", "H60") ~ 2,
-      study_visit == "H72"              ~ 3,
-      study_visit == "D7"               ~ 7,
-      study_visit == "D14"              ~ 14,
-      study_visit == "D21"              ~ 21,
-      study_visit == "D28"              ~ 28,
-      study_visit == "D35"              ~ 35,
-      study_visit == "D42"              ~ 42
-    )
-  ) |>
-  select(
-    participant_id,
-    scheduled_visit = study_visit,
-    scheduled_date = followup_date,
-    protocol_day
-  )  
 
-#------------Create a function for an unscheduled visit-------------------------
-derive_unscheduled_day <- function(id, event_date) {
-  
-  if (is.na(event_date)) {
-    return(NA_integer_)
-  }
-  
-  previous_visit <- scheduled_reference |>
-    filter(
-      participant_id == id,
-      scheduled_date <= event_date
-    ) |>
-    arrange(
-      desc(scheduled_date),
-      desc(protocol_day)
-    ) |>
-    slice(1)
-  
-  if (nrow(previous_visit) == 0) {
-    return(NA_integer_)
-  }
-  
-  previous_visit$protocol_day +
-    as.integer(event_date - previous_visit$scheduled_date)
-}
+#==================ENROLMENT DATE REFERENCE=========================
+
+enrolment_reference <- SMARTUncomplicated |>
+  filter(redcap_event_name == "hour_0_day_0_arm_1") |>
+  transmute(
+    screening_id = id_um,
+    enrolment_date = as.Date(h02um)
+  )
+
+# Check enrolment-date completeness
+enrolment_reference |>
+  summarise(
+    n_participants = n(),
+    missing_enrolment_date = sum(is.na(enrolment_date))
+  )
+
+# Check duplicate screening IDs
+enrolment_reference |>
+  count(screening_id) |>
+  filter(n > 1)
+
 
 #=====================FINAL ANALYSIS-READY DATASET==============================
-#===============================================================================
 
 smart_analysis_final <- SMART_analysis |>
   
@@ -2060,7 +2089,7 @@ smart_analysis_final <- SMART_analysis |>
       "Concomitant medication"
     ),
     
-    # Remove empty unscheduled-visit placeholder rows
+    # Remove empty unscheduled-visit rows
     !(
       study_visit == "Unscheduled visit" &
         is.na(a01_uv) &
@@ -2070,36 +2099,41 @@ smart_analysis_final <- SMART_analysis |>
   
   mutate(
     original_study_visit = study_visit
-  ) |> 
+  ) |>
+  
+  left_join(
+    enrolment_reference,
+    by = "screening_id"
+  ) |>
   
   rowwise() |>
+  
   
   mutate(
     
     # Derive the day only where necessary
+    
+    # Derive exact study day from enrolment date
     derived_day = case_when(
       
       # Ordinary unscheduled visit
-      study_visit == "Unscheduled visit" ~
-        derive_unscheduled_day(
-          participant_id,
-          a02_uv
-        ),
+      study_visit == "Unscheduled visit" &
+        !is.na(a02_uv) &
+        !is.na(enrolment_date) ~
+        as.integer(a02_uv - enrolment_date),
       
-      # Treatment failure occurring at an unscheduled visit
+      # Treatment failure at an unscheduled visit
       study_visit == "Treatment failure" &
-        tf_visit == "Unscheduled visit" ~
-        derive_unscheduled_day(
-          participant_id,
-          tf_visit_date
-        ),
+        tf_visit == "Unscheduled visit" &
+        !is.na(tf_visit_date) &
+        !is.na(enrolment_date) ~
+        as.integer(tf_visit_date - enrolment_date),
       
       TRUE ~ NA_integer_
     ),
     
-    #---------------------------------------------------------------------------
     # REPLACE STUDY DAY ONLY IN THE FINAL DATASET
-    #---------------------------------------------------------------------------
+    
     
     study_day = case_when(
       
@@ -2138,9 +2172,9 @@ smart_analysis_final <- SMART_analysis |>
       TRUE ~ study_day
     ),
     
-    #---------------------------------------------------------------------------
+   
     # REPLACE STUDY VISIT ONLY IN THE FINAL DATASET
-    #---------------------------------------------------------------------------
+   
     
     study_visit = case_when(
       
@@ -2202,11 +2236,14 @@ smart_analysis_final <- SMART_analysis |>
     tf_visit,
     #tf_unscheduled_visit,
     tf_visit_date,
-    #tf_microscopy_result,
+    tf_microscopy_result,
+    tf_danger_sign,
+    tf_severe_manifestation,
+    tf_malaria_diagnosis,
     
     #microscopy_sample_id,
     parasite_density,
-    #microscopy_positive,
+    microscopy_positive,
     
     pcr_failure_visit,
     #pcr_failure_sample_id,
@@ -2321,7 +2358,7 @@ merged_tf_unscheduled |>
   arrange(participant_id) |>
   print(n = Inf, width = Inf)
 
-#---Replace the duplicate in the data with the merged reult
+#---Replace the duplicate in the data with the merged reult---------
 smart_analysis_final <- smart_analysis_final |>
   
   anti_join(
@@ -2343,7 +2380,7 @@ smart_analysis_final <- smart_analysis_final |>
   ) 
 
 
-#---check if unscheduled visit and treatment failure still remain in the dataset
+#---check if unscheduled visit and treatment failure still remain in the dataset----
 smart_analysis_final |>
   filter(
     study_visit %in% c(
@@ -2361,7 +2398,7 @@ smart_analysis_final |>
   ) |>
   print(n = Inf, width = Inf)
 
-#---check derived unscheduled visit days
+#---check derived unscheduled visit days----
 smart_analysis_final |>
   filter(
     str_detect(study_visit, "^D\\d+$")
@@ -2514,8 +2551,8 @@ smart_analysis_final <- smart_analysis_final |>
   ) |>
   bind_rows(
     merged_tf_scheduled
-  ) |>
-  select(- original_study_visit)
+  ) #|>
+ # select(- original_study_visit)
 
 # Confirm there are no duplicates
 smart_analysis_final |>
@@ -2526,11 +2563,6 @@ smart_analysis_final |>
   ) |>
   filter(n > 1) |>
   print(n = Inf)
-
-View(smart_analysis_final)
-
-
-
 
 #-------Remove rows without records after follow-up end-------------------------
 #Checking if each row contains records 
@@ -2634,13 +2666,13 @@ missing_parasite_density <- smart_analysis_final |>
     participant_id,
     study_day,
     study_visit,
-    parasite_density,
+    parasite_density
   )
 
 missing_parasite_density |>
   print(n = Inf, width = Inf)
 
-#write_csv(missing_parasite_density, "Discrepancy data/missing_parasite_density.csv")
+write_csv(missing_parasite_density, "Discrepancy data/missing_parasite_density.csv")
 
 missing_parasite_density |>
   count(
@@ -2650,14 +2682,240 @@ missing_parasite_density |>
   ) |>
   print(n = Inf)
 
-max(smart_analysis_final$haemoglobin, na.rm = TRUE)
-max(smart_analysis_final$temperature, na.rm = TRUE) 
+#----------missing parasite density by scheduled  visits only----------
+# 1. Normal scheduled visits
+scheduled_visits <- c(
+  "H0", "H8", "H24", "H36", "H48", "H60", "H72",
+  "D7", "D14", "D21", "D28", "D35", "D42"
+)
+
+missing_parasite_scheduled <- smart_analysis_final |>
+  filter(
+    study_visit %in% scheduled_visits,
+    is.na(parasite_density)
+  ) |>
+  select(
+    participant_id,
+    study_visit,
+    parasite_density
+  ) |>
+  arrange(participant_id, study_visit)
+
+write_csv(
+  missing_parasite_scheduled,
+  "Discrepancy data/missing_parasite_scheduled.csv"
+)
+
+
+#----------missing parasite density at treatment failure and unscheduled visits----------
+
+# Missing parasite density at treatment failure visits
+
+missing_parasite_tf <- smart_analysis_final |>
+  ungroup() |>
+  filter(
+    !is.na(tf_visit),
+    is.na(parasite_density),
+    
+    study_visit == tf_visit |
+      (
+        tf_visit == "Unscheduled visit" &
+          !study_visit %in% scheduled_visits
+      )
+  ) |>
+  select(
+    participant_id,
+    study_visit,
+    parasite_density
+  )
+missing_parasite_tf
+
+# Missing parasite density at non-standard visits
+missing_parasite_nonstandard <- missing_parasite_density |>
+  filter(
+    !study_visit %in% scheduled_visits
+  ) |>
+  select(
+    participant_id,
+    study_visit,
+    parasite_density
+  ) |>
+  arrange(participant_id, study_visit)
+
+missing_parasite_nonstandard
+
+# Combine treatment-failure and non-standard missing parasite records
+missing_parasite_combined <- bind_rows(
+  missing_parasite_tf,
+  missing_parasite_nonstandard
+) |> 
+  distinct(
+    participant_id,
+    study_visit,
+    .keep_all = TRUE
+  )
+
+write_csv(missing_parasite_combined, "Discrepancy data/missing_parasite_tf_unscheduled.csv")
+
+#---------Extract treatment failure participants without pcr conclusion---------
+treatment_failure_details <- smart_analysis_final |>
+  ungroup() |>
+  semi_join(
+    treatment_failure_participant,
+    by = "participant_id"
+  ) |>
+  filter(
+    !is.na(tf_visit),
+    study_visit == tf_visit
+  ) |>
+  select(
+    participant_id,
+    screening_id,
+    study_visit,
+    tf_visit,
+    parasite_density,
+    pcr_conclusion_who,
+    pcr_conclusion_2of3
+  )
+
+#those matched
+treatment_failure_details |>
+  summarise(
+    n_records = n(),
+    n_participants = n_distinct(participant_id)
+  )
+
+#unmatched
+treatment_failure_participant |>
+  anti_join(
+    treatment_failure_details,
+    by = "participant_id"
+  )
+
+#treatment-failure information for unmatched participants
+unmatched_tf <- treatment_failure_participant |>
+  anti_join(
+    treatment_failure_details,
+    by = "participant_id"
+  )
+
+smart_analysis_final |>
+  ungroup() |>
+  semi_join(
+    unmatched_tf,
+    by = "participant_id"
+  ) |>
+  select(
+    participant_id,
+    study_visit,
+    original_study_visit,
+    study_day,
+    tf_visit,
+    tf_visit_date,
+    parasite_density,
+    pcr_conclusion_who,
+    pcr_conclusion_2of3
+  ) |>
+  arrange(participant_id, study_visit) |>
+  print(n = Inf, width = Inf)
+
+# Step 1: Extract unscheduled treatment-failure records
+
+unscheduled_tf_details <- smart_analysis_final |>
+  ungroup() |>
+  semi_join(
+    unmatched_tf,
+    by = "participant_id"
+  ) |>
+  filter(
+    tf_visit == "Unscheduled visit",
+    is.na(original_study_visit),
+    !is.na(study_day)
+  ) |>
+  select(
+    participant_id,
+    screening_id,
+    study_visit,
+    tf_visit,
+    parasite_density,
+    pcr_conclusion_who,
+    pcr_conclusion_2of3
+  )
+
+# Step 2: Combine with the 120 matched participants
+
+treatment_failure_participant <- bind_rows(
+  treatment_failure_details,
+  unscheduled_tf_details
+)
+
+treatment_failure_participant |> 
+  print(n = Inf)
+
+#check if all participants are present
+treatment_failure_participant |>
+  summarise(
+    n_records = n(),
+    n_participants = n_distinct(participant_id),
+    missing_parasite_density = sum(is.na(parasite_density)),
+    missing_pcr_who = sum(is.na(pcr_conclusion_who)),
+    missing_pcr_2of3 = sum(is.na(pcr_conclusion_2of3))
+  )
+
+treatment_failure_participant |>
+  count(participant_id) |>
+  filter(n > 1)
+
+treatment_failure_participant |>
+  arrange(participant_id) |>
+  readr::write_csv("Discrepancy data/treatment_failure_participants.csv")
+
+#---------------Check available parasite density for H0 - H72
+# Check H0 after microscopy cleaning
+SMART_analysis |>
+  filter(study_visit == "H0") |>
+  summarise(
+    n_records = n(),
+    n_participants = n_distinct(participant_id),
+    n_parasite_density = sum(!is.na(parasite_density)),
+    n_missing_parasite_density = sum(is.na(parasite_density)),
+    n_positive = sum(parasite_density > 0, na.rm = TRUE),
+    n_zero = sum(parasite_density == 0, na.rm = TRUE)
+  )
+
+SMART_analysis |>
+  ungroup() |> 
+  filter(study_visit %in% c("H0", "H8", "H24", "H36", "H48", "H60", "H72")) |>
+  group_by(study_visit) |> 
+  summarise(
+    n__participants = n_distinct(participant_id),
+    n_with_microscopy = sum(!is.na(microscopy_sample_id)),
+    n_with_parasite_density = sum(!is.na(parasite_density)),
+    n_missing_parasite_density = sum(is.na(parasite_density)),
+    .groups = "drop"
+  ) |> 
+  arrange(match(
+    study_visit,
+    c("H0", "H8", "H24", "H36", "H48", "H60", "H72"))
+    )
+  
+#--------------by site
+SMART_analysis |>
+  filter(study_visit == "H0") |>
+  group_by(site) |>
+  summarise(
+    n_participants = n_distinct(participant_id),
+    n_with_microscopy = sum(!is.na(microscopy_sample_id)),
+    n_with_parasite_density = sum(!is.na(parasite_density)),
+    n_missing_parasite_density = sum(is.na(parasite_density)),
+    n_positive = sum(parasite_density > 0, na.rm = TRUE),
+    n_zero = sum(parasite_density == 0, na.rm = TRUE),
+    .groups = "drop"
+  )
 
 
 #====================ORDER FOLLOW-UP VISITS IN ANALYSIS DATASET=================
-#                        
-#===============================================================================
-# 
+
 # smart_analysis_final <- smart_analysis_final |>
 #   mutate(
 #     visit_order = case_when(
@@ -2696,9 +2954,7 @@ max(smart_analysis_final$temperature, na.rm = TRUE)
 #   print(n = Inf)
 
 
-# #=============================================================================
-# #                 CREATE DATA-QUERY WORKBOOK 
-# #=============================================================================
+# #==========================CREATE DATA-QUERY WORKBOOK ========================
 # 
 # # 1. Microscopy participants not found in SMART_analysis
 # microscopy_not_in_smart <- unmatched_microscopy |>
@@ -2812,3 +3068,11 @@ max(smart_analysis_final$temperature, na.rm = TRUE)
 #   ),
 #   path = "Data/SMART_Data_Queries.xlsx"
 # )
+
+smart_analysis_final |> 
+  filter(participant_id== "S24-10188-AG") |> 
+  select(
+    participant_id,
+    study_visit,
+    tf_visit
+  )

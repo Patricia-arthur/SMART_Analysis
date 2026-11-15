@@ -351,9 +351,8 @@ missing_temperature_status |>
   ) |>
   print(n = Inf)
 
-#===============================================================================
-#             MISSING TEMPERATURE REPORT
-#===============================================================================
+# -------------------MISSING TEMPERATURE REPORT---------------
+
 temperature_missingness_summary <- SMART_analysis |>
   filter(
     study_visit %in% c(
@@ -434,7 +433,7 @@ write_csv(participants_missing_temperature, "Discrepancy data/Participant_with_m
 #   ) |>
 #   arrange(study_visit, participant_id)
 
-#===============================================================================
+
 # missingness_summary <- SMART_analysis |>
 #   summarise(
 #     across(
@@ -504,7 +503,7 @@ write_csv(participants_missing_temperature, "Discrepancy data/Participant_with_m
 #   ) |>
 #   arrange(desc(percent_missing))
 # missingness_summary
-#===============================================================================
+
 
 #======================HAEMOGLOBIN MISSINGNESS==================================
 
@@ -1714,10 +1713,10 @@ missingness_by_visit <- bind_rows(
 
 other_missingness_summary <- bind_rows(
   
-  #-----------------------------------------------------------------------------
+  
   # Temperature route
   # Expected whenever temperature was actually recorded
-  #-----------------------------------------------------------------------------
+  
   
   SMART_analysis |>
     filter(!is.na(temperature)) |>
@@ -1727,10 +1726,7 @@ other_missingness_summary <- bind_rows(
       missing_n = sum(is.na(temperature_route))
     ),
   
-  
-  #-----------------------------------------------------------------------------
   # Treatment-failure microscopy
-  #-----------------------------------------------------------------------------
   
   SMART_analysis |>
     filter(study_visit == "Treatment failure") |>
@@ -1740,10 +1736,7 @@ other_missingness_summary <- bind_rows(
       missing_n = sum(is.na(microscopy_result))
     ),
   
-  
-  #-----------------------------------------------------------------------------
   # Unscheduled microscopy
-  #-----------------------------------------------------------------------------
   
   SMART_analysis |>
     filter(study_visit == "Unscheduled visit") |>
@@ -1752,16 +1745,10 @@ other_missingness_summary <- bind_rows(
       expected_n = n(),
       missing_n = sum(is.na(microscopy_done))
     ),
-  
-  
-  #=============================================================================
+
   # DRUG ADMINISTRATION
-  #=============================================================================
-  
-  #-----------------------------------------------------------------------------
   # Study drug given
   # Expected at every scheduled dosing visit
-  #-----------------------------------------------------------------------------
   
   missing_drug_admin |>
     summarise(
@@ -1770,12 +1757,9 @@ other_missingness_summary <- bind_rows(
       missing_n = sum(is.na(drug_given))
     ),
   
-  
-  # #-----------------------------------------------------------------------------
   # # Drug administered
   # # Expected only when study drug was recorded as given
-  # #-----------------------------------------------------------------------------
-  # 
+  
   # missing_drug_admin |>
   #   filter(drug_given == 1) |>
   #   summarise(
@@ -1785,10 +1769,8 @@ other_missingness_summary <- bind_rows(
   #   ),
   # 
   
-  #-----------------------------------------------------------------------------
   # Drug dose
   # Expected only when study drug was recorded as given
-  #-----------------------------------------------------------------------------
   
   missing_drug_admin |>
     filter(drug_given == 1) |>
@@ -1798,11 +1780,8 @@ other_missingness_summary <- bind_rows(
       missing_n = sum(is.na(drug_dose))
     ),
   
-  
-  # #-----------------------------------------------------------------------------
   # # Drug administration date
   # # Expected only when study drug was recorded as given
-  # #-----------------------------------------------------------------------------
   # 
   # missing_drug_admin |>
   #   filter(drug_given == 1) |>
@@ -1811,12 +1790,10 @@ other_missingness_summary <- bind_rows(
   #     expected_n = n(),
   #     missing_n = sum(is.na(drug_admin_date))
   #   ),
-  # 
-  # 
-  # #-----------------------------------------------------------------------------
+ 
   # # Drug administration time
   # # Expected only when study drug was recorded as given
-  # #-----------------------------------------------------------------------------
+ 
   # 
   # missing_drug_admin |>
   #   filter(drug_given == 1) |>
@@ -1826,12 +1803,9 @@ other_missingness_summary <- bind_rows(
   #     missing_n = sum(is.na(drug_admin_time))
   #   ),
   # 
-  # 
-  # #-----------------------------------------------------------------------------
   # # Vomiting after drug administration
   # # Expected only when study drug was recorded as given
-  # #-----------------------------------------------------------------------------
-  # 
+  
   # missing_drug_admin |>
   #   filter(drug_given == 1) |>
   #   summarise(
@@ -1841,11 +1815,10 @@ other_missingness_summary <- bind_rows(
   #   ),
   # 
   # 
-  # #-----------------------------------------------------------------------------
+ 
   # # Drug re-administration
   # # Expected only when vomiting was recorded
-  # #-----------------------------------------------------------------------------
-  # 
+
   # missing_drug_admin |>
   #   filter(
   #     drug_given == 1,
@@ -1858,10 +1831,9 @@ other_missingness_summary <- bind_rows(
   #   ),
   # 
   
-  #-----------------------------------------------------------------------------
+ 
   # Complaint details
   # Expected only when a complaint was reported
-  #-----------------------------------------------------------------------------
   
   eligible_followup |>
     filter(
@@ -1885,11 +1857,8 @@ other_missingness_summary <- bind_rows(
       missing_n = sum(n_complaints_recorded == 0)
     ),
   
-  
-  #-----------------------------------------------------------------------------
   # Concomitant medication indication
-  #-----------------------------------------------------------------------------
-  
+
   SMART_conmed |>
     summarise(
       variable = "Concomitant medication indication",
@@ -1986,10 +1955,7 @@ final_missingness_summary <- bind_rows(
 
 final_missingness_summary
 
-
-#===============================================================================
-#        EXCEL FOR REAL MISSINGNESS
-#===============================================================================
+#==========================EXCEL FOR REAL MISSINGNESS=====================================================
 
 excel_na <- function(data) {
   data |>
@@ -2048,9 +2014,7 @@ write_xlsx(
 )
 
 
-#===============================================================================
-#        EXCEL FOR REAL MISSINGNESS - REDCap LABELS
-#===============================================================================
+#=====================EXCEL FOR REAL MISSINGNESS - REDCap LABELS================
 
 excel_na <- function(data) {
   data |>
@@ -2226,9 +2190,7 @@ conmed_indication_excel <- missing_conmed_indication |>
     `Indication:` = cm_ind_rm
   )
 
-#===============================================================================
-# WRITE FINAL EXCEL WORKBOOK
-#===============================================================================
+#==========================WRITE FINAL EXCEL WORKBOOK===========================
 
 write_xlsx(
   list(

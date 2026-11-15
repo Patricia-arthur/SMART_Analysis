@@ -79,6 +79,32 @@ ALT and AST fluctuated across visits, with no consistent separation between the 
 
 The biochemical trajectories were largely comparable between AL and AP, with only modest differences in individual markers.
 
+# Uncorrected treatment outcomes
+
+Uncorrected treatment outcomes were summarised for the 350 participants in the treatment-outcome analysis population. Outcomes were classified as early treatment failure (ETF), late clinical failure (LCF), late parasitological failure (LPF), adequate clinical and parasitological response (ACPR), or indeterminate.
+
+`Figure 4` presents the distribution of uncorrected treatment outcomes by treatment arm and age group.
+
+![Uncorrected treatment outcomes by treatment arm and age group](../figures/treatment_outcomes_age_arm.png){#fig-outcome-age-arm width=100%}
+
+No early treatment failures were identified in any treatment or age subgroup. ACPR was more frequent among participants receiving AP than AL in both age groups. Among children aged under five years, ACPR was observed in `72%` of AP participants compared with `63%` of AL participants, while among those aged five years or older, the corresponding proportions were `74%` and `59%`. LCF was highest among AL participants aged five years or older (`15%`), whereas LPF was highest among AP participants aged under five years (`13%`). Indeterminate outcomes ranged from `9.3%` among AP participants aged under five years to `19%` among AL participants aged under five years.
+
+## Treatment outcomes by treatment arm
+
+For additional clarity, uncorrected treatment outcomes were also summarised after pooling participants across age groups and comparing the two treatment arms.
+
+![Uncorrected treatment outcomes by treatment arm](../figures/treatment_outcomes_arm.png){#fig-outcome-arm width=95%}
+
+ACPR was more frequent in the AP arm than the AL arm (`74% vs 60%`). Both LCF (`5.7% vs 13%`) and LPF (`5.7% vs 11%`) were less frequent in the AP arm. The proportion of indeterminate outcomes was similar between AP and AL (`15% vs 16%`).
+
+## Treatment outcomes by age group
+
+Treatment outcomes were also examined after pooling treatment arms and comparing participants aged under five years with those aged five years or older.
+
+![Uncorrected treatment outcomes by age group](../figures/treatment_outcomes_age.png){#fig-outcome-age width=95%}
+
+Overall ACPR was similar between participants aged under five years and those aged five years or older (`68% vs 66%`). LCF was more frequent among participants aged five years or older (`10% vs 6.6%`), whereas LPF was more frequent among children aged under five years (`11% vs 7.4%`). Indeterminate outcomes were also similar between the two age groups (`14% vs 16%`).
+
 # Analyses pending data clarification
 
 Baseline parasite-density summaries, parasite-clearance trajectories and the 

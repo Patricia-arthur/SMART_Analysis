@@ -1,0 +1,149 @@
+---
+title: "Treatment Efficacies of the SMART Uncomplicated Malaria Study"
+author: "Patricia"
+date: last-modified
+format:
+  html:
+    toc: true
+    number-sections: true
+    embed-resources: true
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+# Primary treatment efficacy
+
+The primary efficacy analysis assessed PCR-uncorrected and PCR-corrected adequate clinical and parasitological response (ACPR) at day 28 for Artemether-Lumefantrine (AL) and at day 42 for Artesunate-Pyronaridine (AP). Treatment outcomes are presented for the evaluable per-protocol populations with exact 95% confidence intervals.
+
+## Artemether-Lumefantrine: day 28 efficacy
+
+@fig-al28-efficacy presents the PCR-uncorrected and PCR-corrected day 28 treatment outcomes for participants treated with AL.
+
+![Artemether-Lumefantrine day 28 PCR-uncorrected and corrected treatment outcomes](../figures/AL28_efficacy_outcomes.png){#fig-al28-efficacy width=100%}
+
+Among participants evaluable for the PCR-uncorrected analysis, day 28 ACPR was **84.9%** (129/152; 95% CI 78.2–90.2). Late clinical failure occurred in **9.2%** (14/152; 95% CI 5.1–15.0) and late parasitological failure in **5.9%** (9/152; 95% CI 2.7–10.9). No early treatment failures were observed.
+
+After PCR correction, the evaluable population was reduced to 132 participants following exclusion of reinfections and PCR-indeterminate recurrent infections. PCR-corrected ACPR increased to **97.7%** (129/132; 95% CI 93.5–99.5), while LCF and LPF decreased to **1.5%** and **0.8%**, respectively. This increase indicates that most recurrent parasitaemia classified as treatment failure in the uncorrected analysis represented new infections rather than recrudescence.
+
+## Artesunate-Pyronaridine: day 42 efficacy
+
+@fig-ap42-efficacy presents the corresponding day 42 efficacy outcomes for participants treated with AP.
+
+![Artesunate-Pyronaridine day 42 PCR-uncorrected and PCR-corrected treatment outcomes](../figures/AP42_efficacy_outcomes.png){#fig-ap42-efficacy width=100%}
+
+For AP, PCR-uncorrected day 42 ACPR was **86.6%** (129/149; 95% CI 80.0–91.6). LCF and LPF each occurred in **6.7%** of evaluable participants (10/149; 95% CI 3.3–12.0), with no early treatment failures observed.
+
+Following PCR correction, 132 participants remained evaluable. PCR-corrected ACPR increased to **97.7%** (129/132; 95% CI 93.5–99.5). Corrected LCF and LPF were **0.8%** and **1.5%**, respectively. As observed for AL, the marked difference between uncorrected and corrected efficacy reflects the large proportion of recurrent parasitaemia classified by PCR as new infections rather than recrudescence.
+
+# Time to fever resolution
+
+Fever resolution occurred rapidly in both treatment arms, with most participants achieving confirmed fever clearance within the first `24 hours` after treatment. The Kaplan–Meier curves for AL and AP were closely similar throughout the 72-hour follow-up period.
+
+The log-rank test showed no evidence of a difference in time to fever resolution between the two treatment arms ($\chi^2 = 0.37$, `p = 0.54`). Fever resolved at a comparable rate among participants treated with AL and AP.
+
+![Kaplan-Meier curves for time to fever resolution by treatment arm](../figures/fever_resolution_km.png){#fig-fever-km width=100%}
+
+# Parasite clearance and parasitaemia during follow-up
+
+## Parasite clearance by treatment arm
+
+![Percentage of participant with parasitaemia by treatment arm](../figures/percentage_parasite_clearance.png){#fig-percentage-clearance width=100%}
+
+The proportion of participants with parasitaemia declined rapidly in both treatment arms during the first 72 hours after treatment. At 8 hours, a lower proportion of participants in the AP arm remained parasitaemic compared with the AL arm, and this pattern was maintained at 24 hours. By 36 hours, very few participants in either arm remained parasitaemic, while no parasitaemia was detected from 48 to 72 hours among participants with available microscopy results.
+
+![Decline in geometric mean parasite density by treatment arm](../figures/parasite_density_decline_log.png){#fig-geometric-clearance width=100%}
+
+Parasite density declined sharply in both treatment arms. The decline was more rapid in the AP arm during the early follow-up period, particularly at 8 and 24 hours. By 36 hours, parasite densities were very low in both groups and reached zero by 48 hours, indicating rapid parasite clearance following treatment.
+
+## Parasitaemia during follow-up
+![Percentage of participants with parasitaemia during the 42-day follow-up, by treatment arm.](../figures/parasite_42_plot.png){#fig-parasite-42 width=100%}
+
+Parasitaemia declined to zero during the early post-treatment period and remained absent through day 14 in both treatment arms. From day 21 onwards, parasitaemia reappeared, with a higher proportion observed in the AL arm between days 21 and 35. By day 42, the proportion with parasitaemia was slightly higher in the AP arm. These later episodes represent recurrent parasitaemia and require PCR classification to distinguish reinfection from recrudescence.
+
+## Time to parasite clearance
+![Kaplan–Meier estimates of time to parasite clearance by treatment arm.](../figures/pclearance_km_plot.png){#fig-pclearance-km width=100%}
+
+The Kaplan–Meier analysis showed rapid parasite clearance in both treatment arms. The AP arm showed slightly faster early clearance; however, the overall difference in time to parasite clearance between AL and AP was not statistically significant (log-rank χ² = 2.94, p = 0.09). The median observed parasite clearance time was 24 hours in both treatment arms, and almost all participants had cleared parasitaemia by 48 hours.
+
+## Time to recurrent parasitaemia
+
+### Comparison by treatment arm
+
+::: {layout-ncol=2}
+
+![PCR-uncorrected Kaplan–Meier estimates of time to recurrent parasitaemia by treatment arm.](../figures/pcr-uncorrected_km_arm.png){#fig-uncorrected-recurrence-km-arm width=100%}
+
+![PCR-corrected Kaplan–Meier estimates of time to recurrent parasitaemia by treatment arm.](../figures/pcr-corrected_km_arm.png){#fig-corrected-recurrence-km-arm width=100%}
+
+:::
+
+The PCR-uncorrected analysis showed a higher probability of remaining free from recurrent parasitaemia in the AP arm compared with the AL arm. By day 42, the estimated survival probability was 88% (95% CI: 83%–93%) for AP compared with 75% (95% CI: 68%–82%) for AL. The difference between the treatment arms was statistically significant (log-rank χ² = 10.48, p = 0.001).
+
+After PCR correction, the survival probabilities increased to approximately 98% in both treatment arms, and the curves were almost identical. There was no evidence of a difference between AL and AP in the PCR-corrected analysis (log-rank χ² = 0.02, p = 0.89). The marked reduction in the difference after PCR correction indicates that most of the recurrent parasitaemia observed in the uncorrected analysis was due to new infections rather than recrudescence.
+
+### Comparison by age group
+
+::: {layout-ncol=2}
+
+![PCR-uncorrected Kaplan–Meier estimates of time to recurrent parasitaemia by age group.](../figures/pcr-uncorrected_km_age.png){#fig-uncorrected-recurrence-km-age width=100%}
+
+![PCR-corrected Kaplan–Meier estimates of time to recurrent parasitaemia by age group.](../figures/pcr-corrected_km_age.png){#fig-corrected-recurrence-km-age width=100%}
+
+:::
+
+The PCR-uncorrected survival curves were similar for participants aged <5 years and those aged ≥5 years. At day 42, the estimated survival probabilities were 81% (95% CI: 73%–89%) and 82% (95% CI: 77%–87%), respectively. There was no statistically significant difference in time to recurrent parasitaemia between the age groups (log-rank χ² = 0.04, p = 0.851).
+
+Following PCR correction, survival remained high in both age groups, reaching 97% (95% CI: 93%–100%) among participants aged <5 years and 99% (95% CI: 97%–100%) among those aged ≥5 years. The difference remained non-significant (log-rank χ² = 1.16, p = 0.282), indicating no clear evidence that PCR-corrected recurrence differed by age group.
+
+### Day 42 survival estimates
+
+::: {layout-ncol=2}
+
+![Day 42 PCR-uncorrected and PCR-corrected survival estimates by treatment arm.](../figures/km_survival_table_by_arm.png){#fig-d42-survival-arm width=100%}
+
+!["Day 42 PCR-uncorrected and PCR-corrected survival estimates by age group.](../figures/km_survival_table_by_age.png){#fig-d42-survival-age width=100%"}
+
+:::
+
+Overall, PCR correction substantially increased the estimated probability of remaining recurrence-free, particularly in the AL arm. While the uncorrected analysis suggested a clear difference between AL and AP, this difference disappeared after PCR correction. In contrast, survival estimates were similar across age groups in both the uncorrected and corrected analyses.
+
+### Sensitivity analyses for PCR-corrected recurrent parasitaemia
+
+Two sensitivity analyses were conducted to assess the effect of missing or indeterminate PCR results. In the first analysis, these cases were treated as censored observations, while in the second, they were treated as recrudescence events.
+
+#### By treatment arm
+
+::: {layout-ncol=2}
+
+![PCR-corrected Kaplan–Meier estimates by treatment arm, with missing or indeterminate PCR results treated as censored.](../figures/pcr-corrected_km_arm_cens.png){#fig-sensitivity_cens-arm width=100%}
+
+!["PCR-corrected Kaplan–Meier estimates by treatment arm, with missing or indeterminate PCR results treated as recrudescence.](../figures/pcr-corrected_km_arm_recrud.png){#fig-sensitivity_recrud-arm width=100%}
+
+:::
+
+When missing or indeterminate PCR results were treated as censored, the survival curves for AL and AP were almost identical. The estimated day 42 survival probability was 98% (95% CI: 96%–100%) in both treatment arms, with no statistically significant difference between them (log-rank χ² = 0.02, p = 0.901).
+
+When these cases were treated as recrudescence, the day 42 survival probability decreased slightly to 96% (95% CI: 92%–99%) for AL and 97% (95% CI: 94%–100%) for AP. The difference between the treatment arms remained non-significant (log-rank χ² = 0.26, p = 0.611).
+
+![Day 42 PCR-corrected survival estimates by treatment arm under the primary and sensitivity analysis assumptions.](../figures/sensitivity_survival_table_by_arm.png){#fig-sensitivity-arm width=100%}
+
+
+#### By age group
+
+::: {layout-ncol=2}
+
+![PCR-corrected Kaplan–Meier estimates by age group, with missing or indeterminate PCR results treated as censored.](../figures/pcr-corrected_km_age_cens.png){#fig-sensitivity_cens-age width=100%}
+
+![PCR-corrected Kaplan–Meier estimates by age group, with missing or indeterminate PCR results treated as recrudescence.](../figures/pcr-corrected_km_age_recrud.png){#fig-sensitivity_recrud-age width=100%}
+
+:::
+
+When missing or indeterminate PCR results were treated as censored, the estimated day 42 survival probability was 97% (95% CI: 93%–100%) among participants aged <5 years and 99% (95% CI: 97%–100%) among those aged ≥5 years. There was no statistically significant difference between the age groups (log-rank χ² = 1.20, p = 0.273).
+
+When these cases were treated as recrudescence, the day 42 survival probability decreased slightly to 96% (95% CI: 91%–100%) among participants aged <5 years and 97% (95% CI: 94%–99%) among those aged ≥5 years. The difference between the age groups remained non-significant (log-rank χ² = 0.26, p = 0.612).
+
+![Day 42 PCR-corrected survival estimates by age group under the primary and sensitivity analysis assumptions.](../figures/sensitivity_survival_table_by_age.png){#fig-sensitivity-age width=100%}
+
+Overall, the sensitivity analyses were consistent with the primary PCR-corrected analysis. Treating missing or indeterminate PCR results either as censored observations or as recrudescence events did not materially change the comparison between treatment arms or age groups.

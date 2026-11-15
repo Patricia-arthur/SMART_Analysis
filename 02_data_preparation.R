@@ -8,9 +8,13 @@ library(janitor)
 library(naniar)
 
 #------------------STUDY DATASET-----------------------------------------------------#
-#       
-#-----------------------------------------------------------------------#
+
 SMARTUncomplicated <- data
+
+SMARTUncomplicated <- SMARTUncomplicated |>
+  mutate(
+    id_um = str_remove(id_um, "--1$")
+  )
 
 #View(SMARTUncomplicated)
 dim(SMARTUncomplicated)
@@ -655,9 +659,7 @@ names(SMARTUncomplicated) |>
 SMART_dictionary <- tribble(
   ~domain, ~variable, ~description, ~visit_source, ~analysis_role,
   
-  #-----------------------------------------------------------------------
   #   Identifiers and study structure
-  #-----------------------------------------------------------------------
   
   "Identifiers & structure", "h01_3um", "Participant ID", "Participant-level identifier", 
   "Primary identifier and dataset linkage key",
@@ -681,9 +683,8 @@ SMART_dictionary <- tribble(
   Artemether-Lumefantrine or Artesunate- Pyronaridine",
   "Participant level", "Main treatment exposure",
   
-  #-----------------------------------------------------------------------
+  
   #   Temperature
-  #-----------------------------------------------------------------------
   
   "Temperature", "c03_1um", "Temperature", "H0", "Baseline temperature",
   
@@ -714,9 +715,8 @@ SMART_dictionary <- tribble(
   "Temperature", "b03_2_uv", "Temperature route", "Unscheduled visit", 
   "Temperature measurement information",
   
-  # ---------------------------------------------------------------------------
   #    Haemoglobin
-  # ---------------------------------------------------------------------------
+
   "Haemoglobin", "d05um", "Haemoglobin (g/dL)", "H0", "Baseline haemoglobin",
   
   "Haemoglobin", "a07_d_um", "Follow-up haemoglobin (g/dL)", "H72 and D7-D42", 
@@ -728,9 +728,9 @@ SMART_dictionary <- tribble(
   "Haemoglobin", "hgb_edta", "Laboratory HGB from EDTA sample (g/dL)", 
   "Laboratory/EDTA records", "Laboratory haemoglobin assessment",
   
-  # ---------------------------------------------------------------------------
+  
   #    Microscopy
-  # ---------------------------------------------------------------------------
+  
   "Microscopy", "d02_1um_2", "Malaria microscopy done?", "H0", 
   "Baseline microscopy assessment",
   
@@ -752,16 +752,16 @@ SMART_dictionary <- tribble(
   "Microscopy", "c02_malaria_microscopy_don", "Malaria microscopy done?", 
   "Unscheduled visit", "Assessment for possible recurrence",
   
-  # ---------------------------------------------------------------------------
+  
   # Parasitaemia
-  # ---------------------------------------------------------------------------
+ 
   "Parasitaemia", NA_character_, "Quantitative parasite density/count", 
   "Expected H0-H72 and later relevant follow-up visits",
   "Pending separate parasitaemia dataset; required for parasite clearance and recurrent parasitaemia",
   
-  # ---------------------------------------------------------------------------
+  
   # AP drug administration
-  # ---------------------------------------------------------------------------
+  
   "Drug administration - AP", "da_ap_b01_1", "Study drug given?", "AP dosing visits",
   "Confirms scheduled treatment receipt",
   
@@ -805,9 +805,9 @@ SMART_dictionary <- tribble(
   "Drug administration - AP", "da_ap_c07_1", "Vomited after AP re-administration?",
   "AP re-administration", "Tolerance of replacement dose",
   
-  # ---------------------------------------------------------------------------
+  
   # AL drug administration
-  # ---------------------------------------------------------------------------
+  
   "Drug administration - AL", "da_al_b01_1", "Study drug given?",
   "AL dosing visits", "Confirms scheduled treatment receipt",
   
@@ -852,9 +852,9 @@ SMART_dictionary <- tribble(
   "Drug administration - AL", "da_al_c07_1", "Vomited after AL re-administration?",
   "AL re-administration","Tolerance of replacement dose",
   
-  # ---------------------------------------------------------------------------
+  
   # New clinical complaints / adverse-event indicators
-  # ---------------------------------------------------------------------------
+  
   "Clinical complaints / AE indicators", "a05_1_fuv",
   "Any new complaint since last visit?",
   "H8-H60", "Early follow-up safety",
@@ -888,9 +888,9 @@ SMART_dictionary <- tribble(
   "Specific complaint description", "Unscheduled visit",
   "Detailed clinical complaint",
   
-  # ---------------------------------------------------------------------------
+  
   # Concomitant medications
-  # ---------------------------------------------------------------------------
+  
   "Concomitant medication", "cm_pid_rm", "Participant ID",
   "Concomitant medication form", "Record linkage",
   
@@ -931,9 +931,9 @@ write_csv(SMART_dictionary, "Discrepancy data/SMART_dictionary.csv")
 SMART_supporting_dictionary <- tribble(
   ~domain, ~variable, ~description, ~visit_source, ~analysis_role,
   
-  # ---------------------------------------------------------------------------
+  
   # Biochemistry
-  # ---------------------------------------------------------------------------
+  
   "Biochemistry", "c01_date_and_time_of_bioch",
   "Date and time biochemistry was performed",
   "Laboratory records", "Laboratory timing",
@@ -978,9 +978,9 @@ SMART_supporting_dictionary <- tribble(
   "H0, H72, D7, D14, D28, D42 and selected other visits",
   "Potential biochemical/safety assessment",
   
-  # ---------------------------------------------------------------------------
+  
   # Pharmacokinetic sample collection and processing - AP
-  # ---------------------------------------------------------------------------
+  
   "PK sample processing - AP", "sptaken_heparin_fo",
   "Fluoride oxalate sample taken for AP pharmacokinetics",
   "PK sampling records", "Specimen availability",
@@ -1011,9 +1011,9 @@ SMART_supporting_dictionary <- tribble(
   "PK laboratory records",
   "Specimen storage information",
   
-  # ---------------------------------------------------------------------------
+  
   # Pharmacokinetic sample collection and processing - AL
-  # ---------------------------------------------------------------------------
+  
   "PK sample processing - AL", "hep_bio_3",
   "Heparin blood sample collected for AL pharmacokinetics",
   "PK sampling records",
@@ -1449,6 +1449,11 @@ SMART_analysis <- SMARTUncomplicated |>
 SMART_analysis <- SMART_analysis |>
   filter(participant_id != "S24-20057-AG")
 
+SMART_analysis <- SMART_analysis |>
+  mutate(
+    screening_id = str_remove(screening_id, "--1$")
+  )
+
 # #Check available temperature and haemoglobin 
 # SMART_analysis |>
 #   group_by(study_visit) |>
@@ -1661,20 +1666,235 @@ SMART_microscopy <- microscopy_data |>
     vivax,
     final_parasitemia_over_all_readings_in_parasites_m_l
   )
-glimpse(SMART_microscopy)
-
-write_csv(SMART_microscopy, "Discrepancy data/SMART_microscopy.csv")
 
 SMART_microscopy |>
   count(sample_id) |>
   filter(n > 1)
 
+#=================== ADD H0 MICROSCOPY RECORDED USING SCREENING IDS - AF=============
+
+assin_microscopy_h0_raw <- readxl::read_excel(
+  "Data/mal_slideReadings_SIDs.xlsx",
+  sheet = "Sheet1"
+) |>
+  clean_names() |>
+  mutate(
+    # Most IDs are like S24-S0001-AF.
+    # This also removes an accidental H0/H00 suffix if present.
+    screening_key = str_remove(
+      str_trim(sample_id),
+      "-H0+$"
+    ),
+    # All records in this file are baseline microscopy
+    microscopy_visit = "H0"
+  )
+
+#------------------Create screening ID -> participant ID lookup-----------------
+
+screening_lookup <- SMART_analysis |>
+  distinct(
+    screening_id,
+    participant_id
+  ) |>
+  mutate(
+    screening_key = str_remove(
+      str_trim(screening_id),
+      "--\\d+$"
+    )
+  ) |>
+  filter(
+    !is.na(screening_key),
+    !is.na(participant_id)
+  ) |>
+  distinct(
+    screening_key,
+    participant_id
+  )
+
+# A screening key should not correspond to more than one participant
+screening_lookup |>
+  count(screening_key) |>
+  filter(n > 1)
+
+#--------------------Map the H0 microscopy to participant IDs-------------------
+microscopy_h0_linked <- assin_microscopy_h0_raw |>
+  left_join(
+    screening_lookup,
+    by = "screening_key"
+  )
+
+#------------------------Check participants successfully linked
+microscopy_h0_linked |>
+  summarise(
+    n_records = n(),
+    n_linked = sum(!is.na(participant_id)),
+    n_not_linked = sum(is.na(participant_id))
+  )
+
+# Participants not linked
+h0_microscopy_not_enrolled <- microscopy_h0_linked |>
+  filter(is.na(participant_id)) |>
+  select(
+    sample_id,
+    screening_key,
+    final_parasitemia_over_all_readings_in_parasites_m_l
+  )
+
+#----------Create the H0 microscopy object only for participants linked---------
+SMART_microscopy_assin_h0 <- microscopy_h0_linked |>
+  filter(!is.na(participant_id)) |>
+  select(
+    sample_id,
+    participant_id,
+    microscopy_visit,
+    reading_date_2,
+    reading_date_3,
+    reading_date_4,
+    detection_6,
+    #detection_15,
+    detection_29,
+    #detection_38,
+    detection_53,
+    x3rd_reading_done,
+    falciparum,
+    malariae,
+    ovale,
+    vivax,
+    final_parasitemia_over_all_readings_in_parasites_m_l
+  )
+
+#----------------Standardise microscopy reading dates---------------------------
+
+SMART_microscopy <- SMART_microscopy |>
+  mutate(
+    across(
+      starts_with("reading_date"),
+      as.character
+    )
+  )
+
+SMART_microscopy_assin_h0 <- SMART_microscopy_assin_h0 |>
+  mutate(
+    across(
+      starts_with("reading_date"),
+      as.character
+    )
+  )
+
+#=================== ADD AGOGO H0 MICROSCOPY ====================
+
+agogo_microscopy_h0_raw <- readxl::read_excel(
+  "Data/AG_H0_malariaSlideReading_01.xlsx",
+  sheet = "Sheet1"
+) |>
+  clean_names() |>
+  mutate(
+    participant_id = str_remove(
+      str_trim(sample_id),
+      "-H0+$"
+    ),
+    microscopy_visit = "H0"
+  )
+
+#---Check participant IDs against SMART dataset
+agogo_h0_unmatched <- agogo_microscopy_h0_raw |>
+  anti_join(
+    SMART_analysis |> distinct(participant_id),
+    by = "participant_id"
+  )
+
+agogo_h0_unmatched
+
+# Select the same microscopy variables
+SMART_microscopy_agogo_h0 <- agogo_microscopy_h0_raw |>
+  semi_join(
+    SMART_analysis |> distinct(participant_id),
+    by = "participant_id"
+  ) |>
+  select(
+    sample_id,
+    participant_id,
+    microscopy_visit,
+    reading_date_2,
+    reading_date_3,
+    reading_date_4,
+    detection_6,
+    detection_29,
+    detection_53,
+    x3rd_reading_done,
+    falciparum,
+    malariae,
+    ovale,
+    vivax,
+    final_parasitemia_over_all_readings_in_parasites_m_l
+  ) |>
+  mutate(
+    across(starts_with("reading_date"), as.character)
+  )
+
+
+#---------------------Bind H0 to existing microscopy data-----------------------
+
+# Combine microscopy data from all sources
+SMART_microscopy <- bind_rows(
+  SMART_microscopy,
+  SMART_microscopy_assin_h0,
+  SMART_microscopy_agogo_h0
+)
+
+# Check H0 microscopy availability
+SMART_microscopy |>
+  filter(microscopy_visit == "H0") |>
+  summarise(
+    n_records = n(),
+    n_participants = n_distinct(participant_id),
+    n_valid = sum(
+      final_parasitemia_over_all_readings_in_parasites_m_l >= 0,
+      na.rm = TRUE
+    )
+  )
+
+# Check duplicate participant H0 records
+SMART_microscopy |>
+  filter(microscopy_visit == "H0") |>
+  count(participant_id) |>
+  filter(n > 1)
+
+
+glimpse(SMART_microscopy)
+
+write_csv(SMART_microscopy, "Data/SMART_microscopy.csv")
+
+dim(SMART_microscopy)
+
+SMART_microscopy |>
+  count(microscopy_visit, sort = TRUE)
+
+# Check H0 in the data
+SMART_microscopy |>
+  filter(microscopy_visit == "H0") |>
+  summarise(
+    n_records = n(),
+    n_participants = n_distinct(participant_id),
+    n_negative = sum(
+      final_parasitemia_over_all_readings_in_parasites_m_l < 0,
+      na.rm = TRUE
+    ),
+    n_nonnegative = sum(
+      final_parasitemia_over_all_readings_in_parasites_m_l >= 0,
+      na.rm = TRUE
+    )
+  )
+ 
+
+#---------------------Microscopy discrepancy data-------------------------------
 Microscopy_with_discrepancy <- microscopy_data |>
   filter(final_parasitemia_over_all_readings_in_parasites_m_l == -1,
          malariae == -1,
          falciparum == -1,
          ovale == -1,
-         vivax == -1) |>
+         vivax == -1
+  ) |>
   select(
     sample_id,
     reading_date_2,
