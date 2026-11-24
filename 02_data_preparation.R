@@ -1578,9 +1578,16 @@ SMART_analysis |>
 
 
 #=============================MICROSCOPY DATASET================================
-microscopy_data <- readxl::read_excel(
-  "Data/Malaria_microscopy_Updated_original.xlsx",
-  sheet = "MalariaSlideReadingD-AllSMARTS2"
+
+# microscopy_data <- readxl::read_excel(
+#   "Data/Malaria_microscopy_Updated_original.xlsx",
+#   sheet = "MalariaSlideReadingD-AllSMARTS2"
+# ) |>
+#   clean_names()
+
+microscopy_data <- readr::read_csv(
+  "Data/MalariaSlideReading_12.11.26.csv",
+  show_col_types = FALSE
 ) |>
   clean_names()
 
@@ -1631,7 +1638,33 @@ microscopy_data |>
   count(sample_id, sort = TRUE) |>
   slice_head(n = 20)
 
-# extracting sample_id and visit day/hour
+#----------------Separate Assin H0 screening-ID records-------------------------
+
+assin_microscopy_h0_raw <- microscopy_data |>
+  filter(
+    str_detect(
+      str_trim(sample_id),
+      "^S24-S[0-9]+-AF(-H0+)?$"
+    )
+  ) |>
+  mutate(
+    screening_key = str_remove(
+      str_trim(sample_id),
+      "-H0+$"
+    ),
+    microscopy_visit = "H0"
+  )
+
+#exclude those rows from the ordinary microscopy parsing
+microscopy_data <- microscopy_data |>
+  filter(
+    !str_detect(
+      str_trim(sample_id),
+      "^S24-S[0-9]+-AF(-H0+)?$"
+    )
+  )
+
+#--------------extracting sample_id and visit day/hour--------------
 microscopy_data <- microscopy_data|>
   mutate(
     participant_id = str_remove(sample_id, "-[^-]+$"),
@@ -1781,65 +1814,12 @@ SMART_microscopy_assin_h0 <- SMART_microscopy_assin_h0 |>
     )
   )
 
-#=================== ADD AGOGO H0 MICROSCOPY ====================
-
-agogo_microscopy_h0_raw <- readxl::read_excel(
-  "Data/AG_H0_malariaSlideReading_01.xlsx",
-  sheet = "Sheet1"
-) |>
-  clean_names() |>
-  mutate(
-    participant_id = str_remove(
-      str_trim(sample_id),
-      "-H0+$"
-    ),
-    microscopy_visit = "H0"
-  )
-
-#---Check participant IDs against SMART dataset
-agogo_h0_unmatched <- agogo_microscopy_h0_raw |>
-  anti_join(
-    SMART_analysis |> distinct(participant_id),
-    by = "participant_id"
-  )
-
-agogo_h0_unmatched
-
-# Select the same microscopy variables
-SMART_microscopy_agogo_h0 <- agogo_microscopy_h0_raw |>
-  semi_join(
-    SMART_analysis |> distinct(participant_id),
-    by = "participant_id"
-  ) |>
-  select(
-    sample_id,
-    participant_id,
-    microscopy_visit,
-    reading_date_2,
-    reading_date_3,
-    reading_date_4,
-    detection_6,
-    detection_29,
-    detection_53,
-    x3rd_reading_done,
-    falciparum,
-    malariae,
-    ovale,
-    vivax,
-    final_parasitemia_over_all_readings_in_parasites_m_l
-  ) |>
-  mutate(
-    across(starts_with("reading_date"), as.character)
-  )
-
-
 #---------------------Bind H0 to existing microscopy data-----------------------
 
 # Combine microscopy data from all sources
 SMART_microscopy <- bind_rows(
   SMART_microscopy,
-  SMART_microscopy_assin_h0,
-  SMART_microscopy_agogo_h0
+  SMART_microscopy_assin_h0
 )
 
 # Check H0 microscopy availability

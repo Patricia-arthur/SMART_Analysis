@@ -15,7 +15,7 @@ execute:
 
 # Primary treatment efficacy
 
-The primary efficacy analysis assessed PCR-uncorrected and PCR-corrected adequate clinical and parasitological response (ACPR) at day 28 for Artemether-Lumefantrine (AL) and at day 42 for Artesunate-Pyronaridine (AP). Treatment outcomes are presented for the evaluable per-protocol populations with exact 95% confidence intervals.
+The primary efficacy analysis assessed PCR-uncorrected and corrected adequate clinical and parasitological response (ACPR) at day 28 for Artemether-Lumefantrine (AL) and at day 42 for Artesunate-Pyronaridine (AP). Treatment outcomes are presented for the evaluable per-protocol populations with exact 95% confidence intervals.
 
 ## Artemether-Lumefantrine: day 28 efficacy
 

@@ -833,6 +833,27 @@ outcome_by_age_arm <- treatment_outcome |>
   ungroup()
 outcome_by_age_arm
 
+#------Treatment-outcome proportions by treatment arm within  site--------------
+
+outcome_by_arm_site <- treatment_outcome |> 
+  #filter(!is.na(site)) |> 
+  count(
+    site,
+    treatment_arm,
+    treatment_outcome
+  ) |> 
+  group_by(
+    site,
+    treatment_arm
+  ) |> 
+  mutate(
+    total = sum(n),
+    proportion = n/total,
+    percentage = round(100* proportion, 1)
+  ) |> 
+  ungroup()
+outcome_by_arm_site
+
 #-----------------------Label variables-----------------------------------------
 treatment_outcome <- treatment_outcome |>
   mutate(
@@ -857,8 +878,13 @@ treatment_outcome <- treatment_outcome |>
       levels = c("AL", "AP"),
       labels = c("Artemether-Lumefantrine", "Artesunate-Pyranoridine")
     ),
+    
+    site = factor(
+      site,
+      levels = c(1, 2),
+      labels = c("Assin Fosu", "Agogo")
+    )
   )
-
 
 #==========================TREATMENT OUTCOME TABLES==============================
 #-------------------1. Outcome by arm descriptive table----------------------------
@@ -970,4 +996,46 @@ table_outcome_age_arm_gt
 gt::gtsave(
   table_outcome_age_arm_gt,
   "figures/treatment_outcomes_age_arm.png"
+)
+
+#-------------------4. Outcome by arm within site descriptive table-------------------------
+table_outcome_arm_site <- treatment_outcome |>
+  select(
+    site,
+    treatment_arm,
+    treatment_outcome
+  ) |>
+  tbl_strata(
+    strata = site,
+    
+    .tbl_fun = ~ .x |>
+      tbl_summary(
+        by = treatment_arm,
+        
+        statistic = list(
+          all_categorical() ~ "{n} ({p}%)"
+        ),
+        
+        missing = "no",
+        
+        label = list(
+          treatment_outcome ~ "Treatment outcome"
+        )
+      ) |> 
+      bold_labels(),
+    .combine_with = "tbl_merge"
+    
+  )
+
+table_outcome_arm_site_gt <- table_outcome_arm_site |> 
+  as_gt() |> 
+  gt::tab_header(
+    title = gt::md("**PCR-uncorrected treatment outcomes by site and treatment arm**")
+  )
+table_outcome_arm_site_gt
+
+#save
+gt::gtsave(
+  table_outcome_arm_site_gt,
+  "figures/treatment_outcomes_arm_site.png"
 )

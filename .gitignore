@@ -31,3 +31,7 @@ renv.lock
 *.rds
 *.RDS
 .Rprofile
+
+# Additional folders to exclude
+PCE/
+

@@ -155,7 +155,7 @@ table1_arm <- baseline_data |>
     weight,
     baseline_temperature,
     baseline_haemoglobin,
-    #baseline_parasitaemia,
+    baseline_parasitaemia,
   ) |> 
   tbl_summary(
     by = treatment_arm,
@@ -173,8 +173,8 @@ table1_arm <- baseline_data |>
       sex ~ "Sex",
       weight ~ "Weight (kg)",
       baseline_temperature ~ "Temperature (°C)",
-      baseline_haemoglobin ~ "Haemoglobin (g/dL)"
-      #baseline_parasitaemia ~ "Parasite density (/µL)"
+      baseline_haemoglobin ~ "Haemoglobin (g/dL)",
+      baseline_parasitaemia ~ "Parasite density (/µL)"
     )
   ) |> 
   #add_n() |>
@@ -240,7 +240,7 @@ table1_site <- baseline_data |>
     weight,
     baseline_temperature,
     baseline_haemoglobin,
-    #baseline_parasitaemia
+    baseline_parasitaemia
   ) |> 
   tbl_summary(
     by = site,
@@ -258,8 +258,8 @@ table1_site <- baseline_data |>
       sex ~ "Sex",
       weight ~ "Weight (kg)",
       baseline_temperature ~ "Temperature (°C)",
-      baseline_haemoglobin ~ "Haemoglobin (g/dL)"
-      #baseline_parasitaemia ~ "Parasite density (/µL)"
+      baseline_haemoglobin ~ "Haemoglobin (g/dL)",
+      baseline_parasitaemia ~ "Parasite density (/µL)"
     )
   ) |> 
   #add_n() |> 
@@ -296,8 +296,8 @@ table_site_arm <- baseline_data |>
     sex,
     weight,
     baseline_temperature,
-    baseline_haemoglobin
-    #baseline_parasitaemia
+    baseline_haemoglobin,
+    baseline_parasitaemia
   ) |> 
   tbl_strata(
     strata = site,
@@ -314,7 +314,7 @@ table_site_arm <- baseline_data |>
           weight ~ "{mean} ({sd})",
           baseline_temperature ~ "{mean} ({sd})",
           baseline_haemoglobin ~ "{mean} ({sd})",
-          #baseline_parasitaemia ~ "{median} ({p25}, {p75})",
+          baseline_parasitaemia ~ "{median} ({p25}, {p75})",
           all_categorical() ~ "{n} ({p}%)"
         ),
         
@@ -323,7 +323,7 @@ table_site_arm <- baseline_data |>
           weight ~ 1,
           baseline_temperature ~ 1,
           baseline_haemoglobin ~ 1,
-          #baseline_parasitaemia ~ 0,
+          baseline_parasitaemia ~ 0,
           all_categorical() ~ c(0,1)
         ),
         
@@ -335,8 +335,8 @@ table_site_arm <- baseline_data |>
           sex ~ "Sex",
           weight ~ "Weight (kg)",
           baseline_temperature ~ "Temperature (°C)",
-          baseline_haemoglobin ~ "Haemoglobin (g/dL)"
-          #baseline_parasitaemia ~ "Parasite density (/µL)"
+          baseline_haemoglobin ~ "Haemoglobin (g/dL)",
+          baseline_parasitaemia ~ "Parasite density (/µL)"
         )
       ) |> 
       bold_labels(),
@@ -356,7 +356,7 @@ gt:: gtsave(
   "figures/baseline_charac_site_arm.png"
 )
 
-#===================BASELINE DESCRIPTIVE CURVES=================================
+#=================== DESCRIPTIVE CURVES=================================
 #--------------descriptive table for temperature------------
 temperature_summary <- smart_analysis_final |> 
   ungroup() |> 
