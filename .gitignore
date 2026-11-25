@@ -33,5 +33,6 @@ renv.lock
 .Rprofile
 
 # Additional folders to exclude
-PCE/
 Reports/
+PCE/
+
