@@ -297,20 +297,6 @@ lcf_data <- smart_analysis_final |>
     analysis_day <= 42
   )
 
-# #--------------add treatment failure data(danger sign/severe malaria)-----------
-# lcf_data <- lcf_data |>
-#   left_join(
-#     treatment_failure_check |>
-#       select(
-#         participant_id,
-#         tf_microscopy_result,
-#         tf_danger_sign,
-#         tf_severe_manifestation,
-#         tf_malaria_diagnosis
-#       ),
-#     by = "participant_id"
-#   )
-
 #---------------------Presence of parasitaemia----------------------------------
 
 lcf_data <- lcf_data |>
@@ -1039,3 +1025,4 @@ gt::gtsave(
   table_outcome_arm_site_gt,
   "figures/treatment_outcomes_arm_site.png"
 )
+
