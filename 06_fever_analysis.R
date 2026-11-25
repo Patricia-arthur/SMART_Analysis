@@ -126,61 +126,45 @@ fever_data |>
   ) |>
   print(n = Inf)
 
-#---------------------Define fever clearance rule-------------------------------
-find_fever_clearance <- function(
-    analysis_hour, temperature
-){
-  #identify possible clearance visit(fever must remain resolve for at least 24hrs)
-  candidate <- which(
-    !is.na(temperature) &
-      temperature < 37.5 &
-      analysis_hour < max(analysis_hour) #<=48
-  )
+#---------------------Define fever clearance rule------------------------------
+
+find_fever_clearance <- function(analysis_hour, temperature) {
   
-  if(length(candidate)== 0){
-    return (NA_real_)
+  # Require an observed temperature at H72
+  if (!any(analysis_hour == 72 & !is.na(temperature))) {
+    return(NA_real_)
   }
   
+  # Identify all visits where fever has resolved
+  candidate <- which(
+    !is.na(temperature) &
+      temperature < 37.5
+  )
+  
+  if (length(candidate) == 0) {
+    return(NA_real_)
+  }
+  
+  # Check that fever does not recur through H72
   for (i in candidate) {
-     target_hour <- analysis_hour[i] + 24
-     
-     # Available observations from candidate time onwards
-     after_candidate <- which(
-       analysis_hour >= analysis_hour[i] &
-         !is.na(temperature)
-     )
-     
-     # Need at least one observed temperature
-     # 24 hours or more after the candidate
-     confirmation <- after_candidate[
-       analysis_hour[after_candidate] >= target_hour
-     ]
-     
-     if (length(confirmation) == 0) {
-       next
-     }
-     
-     # No observed fever before confirmation
-     observations_to_confirmation <- after_candidate[
-       analysis_hour[after_candidate] <=
-         analysis_hour[confirmation[1]]
-     ]
-     
-     # Fever clearance occurs if all available temperatures
-     # remain below 37.5°C
-     if (
-       all(
-         temperature[observations_to_confirmation] < 37.5
-       )
-     ) {
-       return(analysis_hour[i])
-     }
+    
+    after_candidate <- which(
+      analysis_hour >= analysis_hour[i] &
+        analysis_hour <= 72 &
+        !is.na(temperature)
+    )
+    
+    if (all(temperature[after_candidate] < 37.5)) {
+      return(analysis_hour[i])
+    }
   }
   
   NA_real_
 }
 
-#--------------Derive fever clearance time for each participant-----------------
+#---------Derive fever clearance time and event for each participant------------
+# 72 hours is used as censoring time for this current analysis,
+
 fever_clearance <- fever_data |>
   group_by(
     participant_id,
@@ -191,27 +175,13 @@ fever_clearance <- fever_data |>
       analysis_hour,
       temperature
     ),
+    
+    last_followup_hour = max(
+      analysis_hour[!is.na(temperature)]
+    ),
+    
     .groups = "drop"
-  )
-
-# check clearance times
-fever_clearance |>
-  count(
-    treatment_arm,
-    clearance_time
   ) |>
-  arrange(
-    treatment_arm,
-    clearance_time
-  )
-
-# Identify participants without clearance within H0 - D14
-fever_clearance |>
-  filter(is.na(clearance_time))
-
-#---------------------Derive fever time and event-------------------------------
-# 72 hours is used as censoring time for this current analysis,
-fever_clearance <- fever_clearance |>
   mutate(
     fever_event = if_else(
       !is.na(clearance_time),
@@ -222,11 +192,12 @@ fever_clearance <- fever_clearance |>
     fever_time = if_else(
       fever_event == 1,
       clearance_time,
-      72
+      last_followup_hour
     )
-  )
+  ) |>
+  select(-last_followup_hour)
 
-#check
+# Check fever clearance times
 fever_clearance |>
   count(
     treatment_arm,
@@ -236,7 +207,12 @@ fever_clearance |>
   arrange(
     treatment_arm,
     fever_time
-  )
+  ) |>
+  print(n = Inf)
+
+# Identify participants without clearance within H0 - H72
+fever_clearance |>
+  filter(is.na(clearance_time))
 
 #----------------KM fever resolution model--------------------------------------
 #---------------------Kaplan-Meier model----------------------------------------
@@ -245,7 +221,9 @@ fever_km <- survfit2(
   Surv(fever_time, fever_event) ~ treatment_arm,
     data = fever_clearance
   )
-  
+fever_km  
+summary(fever_km)
+
 #----------------------Log-rank test--------------------------------------------
 fever_logrank <- survdiff(
   Surv(fever_time, fever_event) ~ treatment_arm,
@@ -253,13 +231,15 @@ fever_logrank <- survdiff(
 )
 fever_logrank
 
+
 #---------------p-value
 logrank_chisq <- fever_logrank$chisq
 
-fever_pvalue <- pchisq(logrank_chisq, 
-                       df = length(fever_logrank$n)-1,
-                       lower.tail = FALSE
-                      )
+fever_pvalue <- pchisq(
+  logrank_chisq, 
+  df = length(fever_logrank$n)-1,lower.tail = FALSE
+)
+fever_pvalue
 
 logrank_label <- paste0(
   "Log-rank test:  \u03C7\u00B2 = ",
@@ -271,7 +251,7 @@ logrank_label <- paste0(
 #---------------------Kaplan-Meier plot-----------------------------------------
 
 fever_km_plot <- fever_km |>
-  ggsurvfit(linewidth = 1) +
+  ggsurvfit(linewidth = 0.8) +
   #add_confidence_interval() +
   add_censor_mark() +
   annotate(
@@ -311,4 +291,45 @@ ggsave(
   width = 10,
   height = 8,
   dpi = 300
+)
+
+
+#==================== H72 SURVIVAL ESTIMATES (still febrile) ===================
+# H72 febrile estimate
+tbl1_febrile <- survfit2(
+  Surv(fever_time, fever_event) ~ treatment_arm,
+  data = fever_clearance
+) |> 
+  tbl_survfit(
+    times = 72,
+    label_header = "**Febrile at 72 hours (95%CI)**",
+    label = list(treatment_arm ~ "Treatment arm")
+  )
+
+#median survival
+tbl2_median <- survfit2(
+  Surv(fever_time, fever_event) ~ treatment_arm,
+  data = fever_clearance
+) |> 
+  tbl_survfit(
+    probs = 0.5,
+    label_header = "**Median time to resolution (95%CI)**",
+    label = list(treatment_arm ~ "Treatment arm")
+  )
+
+febrile_estimates <- tbl_merge(
+  list(tbl1_febrile, tbl2_median)
+)
+
+febrile_estimates <-febrile_estimates |> 
+  as_gt() |> 
+  tab_header(
+    title = md("**Fever resolution estimates by treatment arm**")
+  )
+febrile_estimates
+
+#------------Save merged tables  
+gt::gtsave(
+  febrile_estimates,
+  filename = "figures/km_febrile_estimates_by_arm.png"
 )
